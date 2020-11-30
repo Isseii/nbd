@@ -24,7 +24,7 @@ public class Controller {
     }
 
 
-    @GetMapping("/covidCases")
+    @GetMapping("/covidCases/all/")
     List<CovidCases> getAll(){
         return service.getAll();
     }
@@ -40,10 +40,15 @@ public class Controller {
         return this.service.getAllByLocation(location);
     }
 
+    @GetMapping("/covidCases/continent/{continent}/")
+    List<CovidCases> getAllByContinent(@PathVariable("continent") String continent){
+        return this.service.getAllByContinent(continent);
+    }
+
     @GetMapping("/covidCases/dateAfter/{continent}/{date}/")
     List<CovidCases> getAllByContinentAndDateAfter( @PathVariable("continent") String continent , @PathVariable("date") String date) throws ParseException {
         Date date1=new SimpleDateFormat("yyyy-MM-dd").parse(date);
-        System.out.println(date1);
+
         return this.service.getAllByContinentAndDateAfter(continent,date1);
     }
 
@@ -54,7 +59,6 @@ public class Controller {
 
         return this.service.getAllByContinentAndDateBetween(continent,datePrev,dateAft);
     }
-
 
 
     @PostMapping(value = "/covidCases/add/", consumes = "application/json", produces = "application/json")
@@ -68,29 +72,21 @@ public class Controller {
         Optional<CovidCases> covidData = Optional.ofNullable(this.service.getById(id));
 
         if(covidData.isPresent()){
-            CovidCases tmp = covidData.get();
-            tmp.setNewCases(covid.getNewCases());
-            tmp.setNewDeaths(covid.getNewDeaths());
-            tmp.setNewDeathsSmoothed(covid.getNewDeathsSmoothed());
-            tmp.setNewCasesSmoothed(covid.getNewCasesSmoothed());
-            tmp.setTotalCases(covid.getTotalCases());
-            tmp.setTotalDeaths(covid.getTotalDeaths());
-            tmp.setTotalCasesPerMillion(covid.getTotalCasesPerMillion());
-            tmp.setDate(covid.getDate());
-            tmp.setContinent(covid.getContinent());
-            tmp.setLocation(covid.getLocation());
-            tmp.setNewCasesPerMillion(covid.getNewCasesPerMillion());
-
-            return  new ResponseEntity<>(this.service.saveCases(tmp), HttpStatus.OK);
-        }else{
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return  new ResponseEntity<>(this.service.updatedCases(covid, covidData), HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(this.service.saveCases(covid), HttpStatus.CREATED);
         }
     }
 
 
-    @DeleteMapping("/covidCases/{id}")
+    @DeleteMapping("/covidCases/delete/{id}")
     void deleteCases(@PathVariable("id") String id){
             this.service.deleteCase(id);
+    }
+
+    @DeleteMapping("/covidCases/delete/location/{location}/")
+    void deleteCasesByLocation(@PathVariable("location") String location){
+        this.service.deleteCasesByLocation(location);
     }
 
 

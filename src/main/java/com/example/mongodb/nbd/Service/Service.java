@@ -1,6 +1,7 @@
 package com.example.mongodb.nbd.Service;
 
 import com.example.mongodb.nbd.Cases.CovidCases;
+import com.example.mongodb.nbd.IdGenerate.IdGenerate;
 import com.example.mongodb.nbd.Repository.CovidRepository;
 import com.google.gson.Gson;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import javax.swing.*;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 @org.springframework.stereotype.Service
 
@@ -25,7 +27,6 @@ public class Service {
     }
 
     public List<CovidCases> getAllByLocation(String location){
-        System.out.println(this.covidRepository.getAllByLocation(location).toString());
         return this.covidRepository.getAllByLocation(location);
     }
 
@@ -33,47 +34,51 @@ public class Service {
         return this.covidRepository.getAllByContinentAndDateAfter(continent,date);
     }
 
-    public List<CovidCases> getAllByDate(Date date){
-        return this.covidRepository.getAllByDate(date);
+    public List<CovidCases> getAllByContinent(String continent){
+        return this.covidRepository.getAllByContinent(continent);
     }
+
 
     public CovidCases getById(String id){
         return this.covidRepository.getBy_id(id);
     }
 
-    public CovidCases updateCases(String id,CovidCases covidCases) {
-        this.covidRepository.getBy_id(id).setContinent(covidCases.continent);
-        this.covidRepository.getBy_id(id).setLocation( covidCases.location);
-        this.covidRepository.getBy_id(id).setNewDeaths( covidCases.newDeaths);
-        this.covidRepository.getBy_id(id).setNewCases( covidCases.newCases);
-        this.covidRepository.getBy_id(id).setTotalCases(covidCases.totalCases);
-        this.covidRepository.getBy_id(id).setTotalDeaths( covidCases.totalDeaths);
-        this.covidRepository.getBy_id(id).setTotalCasesPerMillion( covidCases.totalCasesPerMillion);
-        this.covidRepository.getBy_id(id).setNewCasesSmoothed(covidCases.newCasesSmoothed);
-        this.covidRepository.getBy_id(id).setNewDeathsSmoothed( covidCases.newDeathsSmoothed);
-        this.covidRepository.getBy_id(id).setNewCasesPerMillion(covidCases.newCasesPerMillion);
-        this.covidRepository.getBy_id(id).setDate( covidCases.date);
-
-
-        return  this.covidRepository.getBy_id(id);
-    }
 
     public CovidCases saveCases(CovidCases covidCases) {
+        covidCases.set_id(new IdGenerate().generateId());
         return this.covidRepository.save(covidCases);
     }
+
+    public CovidCases updatedCases(CovidCases covid, Optional<CovidCases> covidObject) {
+
+        CovidCases tmp =  covidObject.get();
+        tmp.setNewCases(covid.getNewCases());
+        tmp.setNewDeaths(covid.getNewDeaths());
+        tmp.setNewDeathsSmoothed(covid.getNewDeathsSmoothed());
+        tmp.setNewCasesSmoothed(covid.getNewCasesSmoothed());
+        tmp.setTotalCases(covid.getTotalCases());
+        tmp.setTotalDeaths(covid.getTotalDeaths());
+        tmp.setTotalCasesPerMillion(covid.getTotalCasesPerMillion());
+        tmp.setDate(covid.getDate());
+        tmp.setContinent(covid.getContinent());
+        tmp.setLocation(covid.getLocation());
+        tmp.setNewCasesPerMillion(covid.getNewCasesPerMillion());
+
+        return this.covidRepository.save(tmp);
+    }
+
 
     public void deleteCase(String id){
         this.covidRepository.deleteBy_id(id);
     }
 
-    public void saveList(List<CovidCases> covidCases){
-        for (CovidCases covid : covidCases){
-            saveCases(covid);
-        }
-    }
 
 
     public List<CovidCases> getAllByContinentAndDateBetween(String continent, Date datePrev, Date dateAft) {
         return this.covidRepository.getAllByContinentAndDateBetween(continent,datePrev,dateAft);
+    }
+
+    public void deleteCasesByLocation(String location) {
+        this.covidRepository.deleteByLocation(location);
     }
 }
